@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultX — Agent Deposit Board</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;-webkit-font-smoothing:antialiased;}
+:root{--gold:#ffc800;--gold2:#e6b400;--bg:#0a0a0a;--bg2:#111;--border:rgba(255,200,0,.18);--border2:rgba(255,200,0,.08);--text:#fff;--text2:#c8c8c8;--text3:#606060;--green:#22c55e;--red:#ef4444;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:rgba(255,200,0,.3);border-radius:5px;}
+input,select{font-family:inherit;background:rgba(255,255,255,.05);border:1px solid rgba(255,200,0,.2);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;outline:none;transition:border-color .15s;width:100%;}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,200,0,.1);}
+input::placeholder{color:var(--text3);}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23707070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;background-color:rgba(255,255,255,.05);cursor:pointer;}
+select option{background:#1a1a1a;color:#fff;}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-size:13px;font-weight:700;transition:all .15s;padding:10px 20px;}
+button:hover{filter:brightness(1.1);}button:active{transform:scale(.97);}
+.btn-gold{background:linear-gradient(135deg,#e6b400,#ffd633);color:#000;box-shadow:0 4px 20px rgba(255,200,0,.35);}
+.btn-ghost{background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.25);color:var(--gold);}
+.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--red);}
+.btn-success{background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.card{background:linear-gradient(160deg,rgba(255,200,0,.06),rgba(255,200,0,.01));border:1px solid var(--border);border-radius:16px;padding:20px;}
+label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:500;}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:slideUp .2s ease;}
+.toast-ok{background:var(--gold);color:#000;}
+.toast-err{background:var(--red);color:#fff;}
+.toast-info{background:#1a1a1a;border:1px solid var(--gold);color:var(--gold);}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(600deg);opacity:0}}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 14px;text-align:left;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border2);background:rgba(255,200,0,.03);white-space:nowrap;}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2);vertical-align:middle;}
+tr:hover td{background:rgba(255,200,0,.025);}
+.lang-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(255,200,0,.08),transparent 60%);}
+.lang-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;}
+.lang-card{background:linear-gradient(160deg,rgba(255,200,0,.06),rgba(0,0,0,0));border:1.5px solid var(--border);border-radius:16px;padding:32px 24px;cursor:pointer;transition:all .2s;text-align:center;}
+.lang-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 16px 40px rgba(255,200,0,.1);}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(255,200,0,.08),transparent 60%);}
+.login-box{background:linear-gradient(160deg,#1a1300,#0d0d0d);border:1.5px solid rgba(255,200,0,.3);border-radius:20px;padding:40px;width:min(400px,94vw);box-shadow:0 0 60px rgba(255,200,0,.08);}
+.board{max-width:1400px;margin:0 auto;padding:24px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.form-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:16px;}
+.table-wrap{overflow-x:auto;}
+.brand-box{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.brand-badge{background:linear-gradient(135deg,#e6b400,#ffd633);border-radius:12px;padding:12px 24px;}
+.method-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.method-crypto{background:rgba(247,147,26,.12);color:#f7931a;border:1px solid rgba(247,147,26,.25);}
+.method-wire{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
+.setup-box{background:#111;border:1px solid rgba(255,200,0,.2);border-radius:16px;padding:28px;margin-bottom:20px;}
+@media(max-width:900px){.form-grid{grid-template-columns:repeat(3,1fr);}.stats-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr 1fr;}.lang-cards{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── PANTRY CONFIG ─────────────────────────────────────────────────────────────
+// Get your free Pantry ID at https://getpantry.cloud
+// Replace the value below with your Pantry ID
+const PANTRY_ID = 'a10fa036-617d-4559-a48e-7d337b25be63';
+const PANTRY = (basket) => `https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/${basket}`;
+
+const BASKETS = {
+  en: { deposits: 'vaultx_deposits_en', settings: 'vaultx_settings_en' },
+  fr: { deposits: 'vaultx_deposits_fr', settings: 'vaultx_settings_fr' },
+};
+
+// ── CREDENTIALS ───────────────────────────────────────────────────────────────
+const CREDS = {
+  en: { user: 'Admin1',   pass: 'Admin001'   },
+  fr: { user: 'AdminFR',  pass: 'AdminFR001' },
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S = {
+  screen:'lang', lang:null,
+  deposits:[], loading:false,
+  toast:null, toastTimer:null,
+  editId:null,
+  companyName:'', companyTag:'', editingBrand:false,
+  form:{ amount:'', date:today(), method:'Crypto', agent:'', client:'', closer:'' },
+  loginErr:'',
+};
+
+function today(){ return new Date().toISOString().split('T')[0]; }
+function fmt(n){ return Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(s){ try{ return new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){return s||'';} }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg, type){
+  if(S.toastTimer) clearTimeout(S.toastTimer);
+  S.toast={msg,type:type||'ok'};
+  S.toastTimer=setTimeout(()=>{S.toast=null;render();},3000);
+  render();
+}
+
+function fireworks(){
+  const colors=['#ffc800','#ffd633','#fff','#f7931a','#22c55e','#60a5fa'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');
+    const size=5+Math.random()*8;
+    el.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'2px'};pointer-events:none;z-index:9999;animation:fall ${1.2+Math.random()*1.5}s linear ${Math.random()*.5}s forwards;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3000);
+  }
+}
+
+// ── PANTRY API ────────────────────────────────────────────────────────────────
+async function getBasket(basket){
+  try{
+    const r=await fetch(PANTRY(basket));
+    if(r.status===400||r.status===404) return null;
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){ return null; }
+}
+
+async function setBasket(basket, data){
+  const r=await fetch(PANTRY(basket),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error('Save failed: '+r.status);
+  return r;
+}
+
+async function updateBasket(basket, data){
+  // Try PUT first (update), fall back to POST (create)
+  try{
+    const r=await fetch(PANTRY(basket),{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok) throw new Error('PUT failed');
+  }catch(e){
+    await setBasket(basket, data);
+  }
+}
+
+// ── DATA OPS ──────────────────────────────────────────────────────────────────
+async function loadDeposits(){
+  if(PANTRY_ID==='YOUR_PANTRY_ID_HERE'){
+    showToast('⚠️ Set your Pantry ID first!','err');
+    return;
+  }
+  S.loading=true; render();
+  const data=await getBasket(BASKETS[S.lang].deposits);
+  S.deposits=(data&&data.deposits)?data.deposits:[];
+  S.loading=false; render();
+}
+
+async function loadSettings(){
+  const data=await getBasket(BASKETS[S.lang].settings);
+  if(data){
+    S.companyName=data.companyName||'';
+    S.companyTag=data.companyTag||'';
+  }
+  render();
+}
+
+async function persistDeposits(){
+  await updateBasket(BASKETS[S.lang].deposits,{deposits:S.deposits});
+}
+
+async function persistSettings(){
+  await updateBasket(BASKETS[S.lang].settings,{companyName:S.companyName,companyTag:S.companyTag});
+}
+
+async function saveDeposit(){
+  if(PANTRY_ID==='YOUR_PANTRY_ID_HERE'){showToast('⚠️ Set your Pantry ID first!','err');return;}
+  const amt=parseFloat(S.form.amount);
+  if(!amt||amt<=0){showToast('⚠️ Enter a valid amount','err');return;}
+  if(!S.form.date){showToast('⚠️ Select a date','err');return;}
+  if(!S.form.agent.trim()){showToast('⚠️ Enter agent name','err');return;}
+  if(!S.form.client.trim()){showToast('⚠️ Enter client name','err');return;}
+
+  const rec={id:Date.now(),amount:amt,date:S.form.date,method:S.form.method,agent:S.form.agent.trim(),client:S.form.client.trim(),closer:S.form.closer.trim()};
+
+  if(S.editId){
+    S.deposits=S.deposits.map(d=>d.id===S.editId?{...d,...rec,id:S.editId}:d);
+    S.editId=null;
+    S.form={amount:'',date:today(),method:'Crypto',agent:'',client:'',closer:''};
+    try{ await persistDeposits(); showToast('✅ Deposit updated!'); }
+    catch(e){ showToast('❌ Failed to save','err'); }
+  }else{
+    S.deposits=[rec,...S.deposits];
+    S.form={amount:'',date:today(),method:'Crypto',agent:'',client:'',closer:''};
+    try{ await persistDeposits(); showToast('✅ Deposit logged — $'+fmt(amt)); fireworks(); }
+    catch(e){ showToast('❌ Failed to save','err'); }
+  }
+  render();
+}
+
+async function removeDeposit(id){
+  if(!confirm('Remove this deposit?')) return;
+  S.deposits=S.deposits.filter(d=>d.id!==id);
+  try{ await persistDeposits(); showToast('✅ Removed'); }
+  catch(e){ showToast('❌ Failed','err'); }
+  render();
+}
+
+async function saveBrandData(){
+  S.editingBrand=false;
+  try{ await persistSettings(); showToast('✅ Brand saved!'); }
+  catch(e){ showToast('❌ Failed to save','err'); }
+  render();
+}
+
+function exportCSV(){
+  const rows=[['Amount','Date','Method','Agent','Client','Closer','Running Total']];
+  let run=0;
+  [...S.deposits].reverse().forEach(d=>{run+=d.amount;rows.push([d.amount,d.date,d.method,d.agent,d.client,d.closer,run.toFixed(2)]);});
+  const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v||'')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='deposits_'+(S.lang||'en')+'_'+today()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+const T={
+  en:{
+    boardTitle:'Agent Deposit Board',boardSub:'Log and track all agent deposits',
+    logNew:'+ Log New Deposit',editDep:'✏️ Edit Deposit',addDep:'+ Add Deposit',
+    saveChg:'💾 Save Changes',cancelEdit:'Cancel Edit',clear:'Clear',
+    amount:'Amount (USD)',date:'Deposit Date',method:'How Deposited',
+    agent:'Agent Name',client:'Client Name',closer:'Closer Name',company:'Company Name',
+    grandTotal:'Grand Total',entries:'Entries',viaCrypto:'Via Crypto',viaWire:'Via Wire',
+    runTotal:'Running Total',del:'Delete',actions:'Actions',lock:'🔒 Lock',
+    exportBtn:'📊 Export CSV',noDeps:'No deposits logged yet.',loading:'Loading…',
+    crypto:'₿ Crypto',wire:'🏦 Wire Transfer',goodLuck:'Good Luck! 🍀',
+    addBrand:'🏢 Add Company Brand',editBrand:'✏️ Edit',tagline:'Tagline (optional)',
+    save:'Save',cancel:'Cancel',compName:'Company Name',back:'← Language',
+    loginTitle:'Agent Deposit Board',loginSub:'Restricted access — agents only',
+    uLabel:'Username',pLabel:'Password',enterBtn:'Enter Board →',invalidCreds:'Invalid credentials',
+  },
+  fr:{
+    boardTitle:'Tableau des Dépôts',boardSub:'Enregistrer et suivre tous les dépôts',
+    logNew:'+ Nouveau Dépôt',editDep:'✏️ Modifier',addDep:'+ Ajouter',
+    saveChg:'💾 Sauvegarder',cancelEdit:'Annuler',clear:'Effacer',
+    amount:'Montant (USD)',date:'Date du Dépôt',method:'Méthode',
+    agent:"Nom de l'Agent",client:'Nom du Client',closer:'Nom du Closer',company:'Nom Société',
+    grandTotal:'Total Général',entries:'Entrées',viaCrypto:'Via Crypto',viaWire:'Via Virement',
+    runTotal:'Total Cumulé',del:'Supprimer',actions:'Actions',lock:'🔒 Verrouiller',
+    exportBtn:'📊 Exporter CSV',noDeps:'Aucun dépôt enregistré.',loading:'Chargement…',
+    crypto:'₿ Crypto',wire:'🏦 Virement',goodLuck:'Bonne Chance! 🍀',
+    addBrand:'🏢 Ajouter Marque',editBrand:'✏️ Modifier',tagline:'Slogan (optionnel)',
+    save:'Sauvegarder',cancel:'Annuler',compName:'Nom de la Société',back:'← Langue',
+    loginTitle:'Tableau des Dépôts',loginSub:'Accès restreint — agents uniquement',
+    uLabel:"Nom d'utilisateur",pLabel:'Mot de passe',enterBtn:'Accéder →',invalidCreds:'Identifiants invalides',
+  }
+};
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  document.getElementById('app').innerHTML=buildHTML();
+  bindEvents();
+}
+
+function buildHTML(){
+  if(S.screen==='lang') return langHTML();
+  if(S.screen==='login') return loginHTML();
+  return boardHTML();
+}
+
+function langHTML(){
+  return `
+  <div class="lang-screen">
+    <div style="text-align:center;max-width:560px;width:100%;padding:40px 24px">
+      <div style="width:60px;height:60px;background:linear-gradient(135deg,#e6b400,#ffd633);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#000;margin:0 auto 24px;box-shadow:0 0 40px rgba(255,200,0,.4)">V</div>
+      <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:8px">VaultX Agent Board</div>
+      <div style="font-size:15px;color:var(--text3)">Select your language / Choisissez votre langue</div>
+      <div class="lang-cards">
+        <div class="lang-card" onclick="selectLang('en')">
+          <div style="font-size:48px;margin-bottom:14px">🇬🇧</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">English</div>
+          <div style="font-size:13px;color:var(--text3)">English Agent Board</div>
+        </div>
+        <div class="lang-card" onclick="selectLang('fr')">
+          <div style="font-size:48px;margin-bottom:14px">🇫🇷</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Français</div>
+          <div style="font-size:13px;color:var(--text3)">Tableau francophone</div>
+        </div>
+      </div>
+      ${PANTRY_ID==='YOUR_PANTRY_ID_HERE'?`
+      <div style="margin-top:28px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:16px;font-size:13px;color:#f87171;line-height:1.7">
+        ⚠️ <strong>Setup required:</strong> Get your free Pantry ID at <a href="https://getpantry.cloud" target="_blank" style="color:#ffc800">getpantry.cloud</a> and replace <code>YOUR_PANTRY_ID_HERE</code> in the HTML file.
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function loginHTML(){
+  const t=T[S.lang];
+  return `
+  <div class="login-screen">
+    <div class="login-box">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:36px;margin-bottom:14px">${S.lang==='fr'?'🇫🇷':'🇬🇧'}</div>
+        <div style="font-size:18px;font-weight:800;color:#fff">${t.loginTitle}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">${t.loginSub}</div>
+      </div>
+      ${S.loginErr?`<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;text-align:center">${S.loginErr}</div>`:''}
+      <div style="margin-bottom:14px"><label>${t.uLabel}</label><input id="lu" placeholder="${CREDS[S.lang].user}" autocomplete="off"></div>
+      <div style="margin-bottom:24px"><label>${t.pLabel}</label><input id="lp" type="password" placeholder="••••••••"></div>
+      <button class="btn-gold" style="width:100%;padding:13px;font-size:15px" onclick="doLogin()">${t.enterBtn}</button>
+      <div style="text-align:center;margin-top:16px">
+        <span style="font-size:13px;color:var(--text3);cursor:pointer" onclick="goBack()">← ${S.lang==='fr'?'Changer de langue':'Change Language'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function boardHTML(){
+  const t=T[S.lang];
+  const deps=S.deposits;
+  const total=deps.reduce((a,d)=>a+d.amount,0);
+  const crypto=deps.filter(d=>d.method==='Crypto').reduce((a,d)=>a+d.amount,0);
+  const wire=deps.filter(d=>d.method!=='Crypto').reduce((a,d)=>a+d.amount,0);
+  const rev=[...deps].reverse();
+  let run=0; const runMap={};
+  rev.forEach(d=>{run+=d.amount;runMap[d.id]=run;});
+
+  return `
+  <div style="min-height:100vh;background:radial-gradient(ellipse at 50% 0%,rgba(255,200,0,.05),transparent 60%)">
+  <div class="board">
+  ${S.toast?`<div class="toast toast-${S.toast.type}">${S.toast.msg}</div>`:''}
+
+  ${S.editingBrand?`
+  <div class="card" style="margin-bottom:18px;border-color:rgba(255,200,0,.3)">
+    <div style="font-size:13px;font-weight:700;color:#ffc800;margin-bottom:14px">🏢 ${t.compName}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:12px;align-items:flex-end">
+      <div><label>${t.compName}</label><input id="bn" value="${esc(S.companyName)}" placeholder="e.g. VaultX Ltd"></div>
+      <div><label>${t.tagline}</label><input id="bt" value="${esc(S.companyTag)}" placeholder="e.g. Elite Trading"></div>
+      <button class="btn-success" onclick="saveBrand()">${t.save}</button>
+      <button class="btn-ghost" onclick="S.editingBrand=false;render()">${t.cancel}</button>
+    </div>
+  </div>`
+  :S.companyName?`
+  <div class="brand-box">
+    <div class="brand-badge">
+      <div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-.5px">${esc(S.companyName)}</div>
+      ${S.companyTag?`<div style="font-size:12px;color:rgba(0,0,0,.65);margin-top:2px">${esc(S.companyTag)}</div>`:''}
+    </div>
+    <div style="font-size:13px;color:#ffc800;font-style:italic;opacity:.7">${t.goodLuck}</div>
+    <button class="btn-ghost btn-sm" style="margin-left:auto" onclick="S.editingBrand=true;render()">${t.editBrand}</button>
+  </div>`
+  :`<button class="btn-ghost btn-sm" style="margin-bottom:14px" onclick="S.editingBrand=true;render()">${t.addBrand}</button>`}
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-size:22px;font-weight:800;color:#ffc800">${S.lang==='fr'?'🇫🇷':'🇬🇧'} ${t.boardTitle}</div>
+      <div style="font-size:13px;color:var(--text3)">${t.boardSub}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-ghost btn-sm" onclick="exportCSV()">${t.exportBtn}</button>
+      <button class="btn-ghost btn-sm" onclick="goBack()">${t.lock}</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    ${[
+      {l:t.grandTotal,v:'$'+fmt(total),c:'#ffc800',i:'💰'},
+      {l:t.entries,v:deps.length,c:'#fff',i:'📋'},
+      {l:t.viaCrypto,v:'$'+fmt(crypto),c:'#f7931a',i:'₿'},
+      {l:t.viaWire,v:'$'+fmt(wire),c:'#60a5fa',i:'🏦'},
+    ].map(s=>`
+    <div class="card" style="position:relative;overflow:hidden">
+      <div style="position:absolute;top:12px;right:16px;font-size:22px;opacity:.4">${s.i}</div>
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${s.l}</div>
+      <div style="font-size:24px;font-weight:800;color:${s.c}">${s.v}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="card" style="margin-bottom:22px;border-color:${S.editId?'rgba(255,200,0,.5)':'rgba(255,200,0,.25)'};background:${S.editId?'linear-gradient(160deg,rgba(255,200,0,.09),rgba(0,0,0,0))':'linear-gradient(160deg,rgba(255,200,0,.06),rgba(0,0,0,0))'}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#ffc800;text-transform:uppercase;letter-spacing:.07em">${S.editId?t.editDep:t.logNew}</div>
+      ${S.editId?`<button class="btn-ghost btn-sm" onclick="cancelEdit()">${t.cancelEdit}</button>`:''}
+    </div>
+    <div class="form-grid">
+      <div><label>${t.amount}</label><input id="fa" type="number" placeholder="e.g. 25000" value="${esc(S.form.amount)}"></div>
+      <div><label>${t.date}</label><input id="fd" type="date" value="${S.form.date}"></div>
+      <div><label>${t.method}</label>
+        <select id="fm">
+          <option value="Crypto" ${S.form.method==='Crypto'?'selected':''}>${t.crypto}</option>
+          <option value="Wire" ${S.form.method==='Wire'?'selected':''}>${t.wire}</option>
+        </select>
+      </div>
+      <div><label>${t.agent}</label><input id="fag" placeholder="${S.lang==='fr'?'ex. Jean Dupont':'e.g. Jane Smith'}" value="${esc(S.form.agent)}"></div>
+      <div><label>${t.client}</label><input id="fcl" placeholder="${S.lang==='fr'?'ex. Paul Martin':'e.g. John Doe'}" value="${esc(S.form.client)}"></div>
+      <div><label>${t.closer}</label><input id="fco" placeholder="${S.lang==='fr'?'ex. Marc Leblanc':'e.g. Mike Ross'}" value="${esc(S.form.closer)}"></div>
+      <div><label>${t.company}</label><input id="fco2" value="${esc(S.companyName)}" placeholder="e.g. VaultX Ltd"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-gold" style="padding:12px 32px" onclick="submitForm()">${S.editId?t.saveChg:t.addDep}</button>
+      ${S.editId
+        ?`<button class="btn-ghost" style="padding:12px 20px" onclick="cancelEdit()">${t.cancel}</button>`
+        :`<button class="btn-ghost" style="padding:12px 20px" onclick="clearForm()">${t.clear}</button>`}
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden;border-color:rgba(255,200,0,.15)">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>${['Amount','Date','Method','Agent','Client','Closer','Running Total',''].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>
+        ${S.loading?`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">${t.loading}</td></tr>`
+        :deps.length===0?`<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)"><div style="font-size:36px;margin-bottom:12px;opacity:.3">🏦</div>${t.noDeps}</td></tr>`
+        :deps.map(d=>`
+        <tr>
+          <td style="font-size:16px;font-weight:800;color:#ffc800;font-family:monospace">$${fmt(d.amount)}</td>
+          <td style="font-size:12px">${fmtDate(d.date)}</td>
+          <td><span class="method-badge ${d.method==='Crypto'?'method-crypto':'method-wire'}">${d.method==='Crypto'?'₿ Crypto':'🏦 Wire'}</span></td>
+          <td style="font-weight:600;color:#fff">${esc(d.agent)}</td>
+          <td>${esc(d.client)}</td>
+          <td style="color:var(--text3)">${esc(d.closer||'—')}</td>
+          <td style="font-family:monospace;font-size:12px;color:var(--text3)">$${fmt(runMap[d.id]||0)}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn-ghost btn-sm" onclick='startEdit(${JSON.stringify(d)})'>✏️</button>
+              <button class="btn-danger btn-sm" onclick="removeDeposit(${d.id})">🗑</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div></div>`;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function bindEvents(){
+  const lp=document.getElementById('lp');
+  if(lp) lp.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  const lu=document.getElementById('lu');
+  if(lu) lu.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  ['fa','fag','fcl','fco'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('keydown',e=>{if(e.key==='Enter')submitForm();});
+  });
+}
+
+function selectLang(lang){ S.lang=lang; S.screen='login'; S.loginErr=''; render(); }
+
+function doLogin(){
+  const u=document.getElementById('lu')?.value.trim()||'';
+  const p=document.getElementById('lp')?.value||'';
+  if(u===CREDS[S.lang].user && p===CREDS[S.lang].pass){
+    S.screen='board'; S.deposits=[]; S.companyName=''; S.companyTag='';
+    S.form={amount:'',date:today(),method:'Crypto',agent:'',client:'',closer:''};
+    render(); loadDeposits(); loadSettings();
+  }else{ S.loginErr=T[S.lang].invalidCreds; render(); }
+}
+
+function goBack(){ S.screen='lang'; S.lang=null; S.deposits=[]; render(); }
+
+function submitForm(){
+  S.form.amount=document.getElementById('fa')?.value||'';
+  S.form.date=document.getElementById('fd')?.value||today();
+  S.form.method=document.getElementById('fm')?.value||'Crypto';
+  S.form.agent=document.getElementById('fag')?.value||'';
+  S.form.client=document.getElementById('fcl')?.value||'';
+  S.form.closer=document.getElementById('fco')?.value||'';
+  const comp=document.getElementById('fco2')?.value||'';
+  if(comp) S.companyName=comp;
+  saveDeposit();
+}
+
+function clearForm(){ S.form={amount:'',date:today(),method:'Crypto',agent:'',client:'',closer:''}; render(); }
+
+function cancelEdit(){ S.editId=null; clearForm(); }
+
+function startEdit(d){
+  S.editId=d.id;
+  S.form={amount:String(d.amount),date:d.date,method:d.method,agent:d.agent||'',client:d.client||'',closer:d.closer||''};
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function saveBrand(){
+  S.companyName=document.getElementById('bn')?.value||'';
+  S.companyTag=document.getElementById('bt')?.value||'';
+  saveBrandData();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
